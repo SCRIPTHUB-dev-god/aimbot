@@ -1,5 +1,5 @@
--- v5.2 | ESP, Random Gacha Aimbot, Anti Lag Optimization System
--- Smart Part Cleanup, Texture Optimization, Auto Anti Lag, Performance Boost
+-- v5.3 | Optimized ESP, Draggable Watermark, Performance Improvements
+-- ESP Thickness Control, FPS/Ping/Proximity Watermark with Emoji, Reduced Loops
 
 local repo = "https://raw.githubusercontent.com/deividcomsono/Obsidian/main/"
 local Library = loadstring(game:HttpGet(repo .. "Library.lua"))()
@@ -15,8 +15,9 @@ Library.AccentColor = Color3.fromRGB(138, 43, 226)
 Library.AccentColorDark = Color3.fromRGB(98, 15, 186)
 
 local Window = Library:CreateWindow({
-    Title = "aimbot pro",
-    Footer = "version: 5.2",
+    Title = "mspaint premium",
+    Footer = "version: 5.3",
+    Icon = 95816097006870,
     NotifySide = "Right",
     ShowCustomCursor = true,
     MinSidebarWidth = 200,
@@ -24,7 +25,7 @@ local Window = Library:CreateWindow({
 })
 
 local Tabs = {
-    Main = Window:AddTab("aimbot", "user"),
+    Main = Window:AddTab("game hub", "laptop"),
 }
 
 local Players = game:GetService("Players")
@@ -63,6 +64,7 @@ local ESPSettings = {
     TracerThickness = 2,
     BoxThickness = 2,
     SkeletonThickness = 2,
+    GlobalThickness = 1,
     TeamCheck = true,
     RainbowSpeed = 1,
     Box3D = true
@@ -177,7 +179,7 @@ local function CreateProximityGUI()
     TitleLabel.Size = UDim2.new(1, -10, 0, 20)
     TitleLabel.Position = UDim2.new(0, 5, 0, 5)
     TitleLabel.BackgroundTransparency = 1
-    TitleLabel.Text = "PROXIMITY checker"
+    TitleLabel.Text = "PROXIMITY"
     TitleLabel.TextColor3 = Color3.fromRGB(0, 255, 0)
     TitleLabel.Font = Enum.Font.GothamBold
     TitleLabel.TextSize = 12
@@ -584,114 +586,106 @@ local function UpdateESP()
         RainbowHue = (RainbowHue + (ESPSettings.RainbowSpeed * 0.001)) % 1
     end
     
-    local rainbowColor = GetRainbowColor()
+    local rainbowColor = ESPSettings.Rainbow and GetRainbowColor() or nil
+    local thickness = ESPSettings.GlobalThickness
     
     for player, espData in pairs(ESPObjects) do
-        if not player.Character or not player.Character:FindFirstChild("HumanoidRootPart") or not player.Character:FindFirstChild("Humanoid") then
-            espData.Tracer.Visible = false
-            for _, line in pairs(espData.Box3D) do
-                line.Visible = false
-            end
+        local character = player.Character
+        if not character then
+            for _, line in pairs(espData.Box3D) do line.Visible = false end
+            if espData.Tracer then espData.Tracer.Visible = false end
             if espData.Highlight then espData.Highlight.Enabled = false end
-            espData.DistanceLabel.Visible = false
-            espData.NameLabel.Visible = false
-            espData.HealthBarBG.Visible = false
-            espData.HealthBarFill.Visible = false
-            espData.HealthText.Visible = false
-            for _, line in pairs(espData.Skeleton) do
-                line.Visible = false
-            end
+            if espData.DistanceLabel then espData.DistanceLabel.Visible = false end
+            if espData.NameLabel then espData.NameLabel.Visible = false end
+            if espData.HealthBarBG then espData.HealthBarBG.Visible = false end
+            if espData.HealthBarFill then espData.HealthBarFill.Visible = false end
+            if espData.HealthText then espData.HealthText.Visible = false end
+            for _, line in pairs(espData.Skeleton) do line.Visible = false end
             continue
         end
         
-        local humanoid = player.Character.Humanoid
-        if humanoid.Health <= 0 then
-            espData.Tracer.Visible = false
-            for _, line in pairs(espData.Box3D) do
-                line.Visible = false
-            end
+        local rootPart = character:FindFirstChild("HumanoidRootPart")
+        local humanoid = character:FindFirstChild("Humanoid")
+        local headPart = character:FindFirstChild("Head")
+        
+        if not rootPart or not humanoid or humanoid.Health <= 0 then
+            for _, line in pairs(espData.Box3D) do line.Visible = false end
+            if espData.Tracer then espData.Tracer.Visible = false end
             if espData.Highlight then espData.Highlight.Enabled = false end
-            espData.DistanceLabel.Visible = false
-            espData.NameLabel.Visible = false
-            espData.HealthBarBG.Visible = false
-            espData.HealthBarFill.Visible = false
-            espData.HealthText.Visible = false
-            for _, line in pairs(espData.Skeleton) do
-                line.Visible = false
-            end
+            if espData.DistanceLabel then espData.DistanceLabel.Visible = false end
+            if espData.NameLabel then espData.NameLabel.Visible = false end
+            if espData.HealthBarBG then espData.HealthBarBG.Visible = false end
+            if espData.HealthBarFill then espData.HealthBarFill.Visible = false end
+            if espData.HealthText then espData.HealthText.Visible = false end
+            for _, line in pairs(espData.Skeleton) do line.Visible = false end
             continue
         end
-        
-        local rootPart = player.Character.HumanoidRootPart
-        local headPart = player.Character:FindFirstChild("Head")
         
         local distance = (LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")) 
             and (LocalPlayer.Character.HumanoidRootPart.Position - rootPart.Position).Magnitude 
             or math.huge
         
         if distance > ESPSettings.MaxDistance then
-            espData.Tracer.Visible = false
-            for _, line in pairs(espData.Box3D) do
-                line.Visible = false
-            end
+            for _, line in pairs(espData.Box3D) do line.Visible = false end
+            if espData.Tracer then espData.Tracer.Visible = false end
             if espData.Highlight then espData.Highlight.Enabled = false end
-            espData.DistanceLabel.Visible = false
-            espData.NameLabel.Visible = false
-            espData.HealthBarBG.Visible = false
-            espData.HealthBarFill.Visible = false
-            espData.HealthText.Visible = false
-            for _, line in pairs(espData.Skeleton) do
-                line.Visible = false
-            end
+            if espData.DistanceLabel then espData.DistanceLabel.Visible = false end
+            if espData.NameLabel then espData.NameLabel.Visible = false end
+            if espData.HealthBarBG then espData.HealthBarBG.Visible = false end
+            if espData.HealthBarFill then espData.HealthBarFill.Visible = false end
+            if espData.HealthText then espData.HealthText.Visible = false end
+            for _, line in pairs(espData.Skeleton) do line.Visible = false end
             continue
         end
         
         local screenPos, onScreen = Camera:WorldToViewportPoint(rootPart.Position)
         
-        if ESPSettings.Tracers then
+        if ESPSettings.Tracers and espData.Tracer then
             espData.Tracer.From = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y)
             espData.Tracer.To = Vector2.new(screenPos.X, screenPos.Y)
-            espData.Tracer.Color = ESPSettings.Rainbow and rainbowColor or Color3.fromRGB(255, 0, 0)
+            espData.Tracer.Color = rainbowColor or Color3.fromRGB(255, 0, 0)
+            espData.Tracer.Thickness = ESPSettings.TracerThickness * thickness
             espData.Tracer.Visible = onScreen
-        else
+        elseif espData.Tracer then
             espData.Tracer.Visible = false
         end
         
         if ESPSettings.BoxESP and onScreen then
-            local boxColor = ESPSettings.Rainbow and rainbowColor or Color3.fromRGB(0, 255, 0)
-            Draw3DBox(player.Character, espData, boxColor)
+            local boxColor = rainbowColor or Color3.fromRGB(0, 255, 0)
+            Draw3DBox(character, espData, boxColor)
+            for _, line in pairs(espData.Box3D) do
+                if line.Visible then
+                    line.Thickness = ESPSettings.BoxThickness * thickness
+                end
+            end
         else
             for _, line in pairs(espData.Box3D) do
                 line.Visible = false
             end
         end
         
-        if ESPSettings.Chams then
-            if espData.Highlight and player.Character then
-                espData.Highlight.Parent = player.Character
-                espData.Highlight.FillColor = ESPSettings.Rainbow and rainbowColor or Color3.fromRGB(255, 100, 0)
-                espData.Highlight.OutlineColor = ESPSettings.Rainbow and rainbowColor or Color3.fromRGB(255, 255, 0)
-                espData.Highlight.Enabled = true
-            end
-        else
-            if espData.Highlight then
-                espData.Highlight.Enabled = false
-            end
+        if ESPSettings.Chams and espData.Highlight then
+            espData.Highlight.Parent = character
+            espData.Highlight.FillColor = rainbowColor or Color3.fromRGB(255, 100, 0)
+            espData.Highlight.OutlineColor = rainbowColor or Color3.fromRGB(255, 255, 0)
+            espData.Highlight.Enabled = true
+        elseif espData.Highlight then
+            espData.Highlight.Enabled = false
         end
         
-        if ESPSettings.Names and onScreen and headPart then
+        if ESPSettings.Names and onScreen and headPart and espData.NameLabel then
             local headPos = Camera:WorldToViewportPoint(headPart.Position + Vector3.new(0, 0.8, 0))
             espData.NameLabel.Text = player.Name
             espData.NameLabel.Position = Vector2.new(headPos.X, headPos.Y)
-            espData.NameLabel.Color = ESPSettings.Rainbow and rainbowColor or Color3.fromRGB(255, 255, 255)
+            espData.NameLabel.Color = rainbowColor or Color3.fromRGB(255, 255, 255)
             espData.NameLabel.Visible = true
-        else
+        elseif espData.NameLabel then
             espData.NameLabel.Visible = false
         end
         
-        if ESPSettings.HealthBar and onScreen then
+        if ESPSettings.HealthBar and onScreen and headPart then
             local healthPercent = humanoid.Health / humanoid.MaxHealth
-            local head = player.Character:FindFirstChild("Head")
+            local head = character:FindFirstChild("Head")
             if head then
                 local headPos = Camera:WorldToViewportPoint(head.Position + Vector3.new(0, 0.5, 0))
                 local legPos = Camera:WorldToViewportPoint(rootPart.Position - Vector3.new(0, 3, 0))
@@ -701,11 +695,13 @@ local function UpdateESP()
                 
                 espData.HealthBarBG.From = Vector2.new(barX, headPos.Y)
                 espData.HealthBarBG.To = Vector2.new(barX, legPos.Y)
+                espData.HealthBarBG.Thickness = 3 * thickness
                 espData.HealthBarBG.Visible = true
                 
                 local healthHeight = height * healthPercent
                 espData.HealthBarFill.From = Vector2.new(barX, legPos.Y)
                 espData.HealthBarFill.To = Vector2.new(barX, legPos.Y - healthHeight)
+                espData.HealthBarFill.Thickness = 2 * thickness
                 
                 if healthPercent > 0.6 then
                     espData.HealthBarFill.Color = Color3.fromRGB(0, 255, 0)
@@ -721,28 +717,28 @@ local function UpdateESP()
                 espData.HealthText.Visible = true
             end
         else
-            espData.HealthBarBG.Visible = false
-            espData.HealthBarFill.Visible = false
-            espData.HealthText.Visible = false
+            if espData.HealthBarBG then espData.HealthBarBG.Visible = false end
+            if espData.HealthBarFill then espData.HealthBarFill.Visible = false end
+            if espData.HealthText then espData.HealthText.Visible = false end
         end
         
-        if ESPSettings.Distance and onScreen then
+        if ESPSettings.Distance and onScreen and espData.DistanceLabel then
             espData.DistanceLabel.Text = string.format("[%.0f studs]", distance)
             espData.DistanceLabel.Position = Vector2.new(screenPos.X, screenPos.Y + 15)
-            espData.DistanceLabel.Color = ESPSettings.Rainbow and rainbowColor or Color3.fromRGB(255, 255, 255)
+            espData.DistanceLabel.Color = rainbowColor or Color3.fromRGB(255, 255, 255)
             espData.DistanceLabel.Visible = true
-        else
+        elseif espData.DistanceLabel then
             espData.DistanceLabel.Visible = false
         end
         
         if ESPSettings.Skeleton then
-            local isR15 = player.Character:FindFirstChild("UpperTorso") ~= nil
+            local isR15 = character:FindFirstChild("UpperTorso") ~= nil
             local connections = isR15 and SkeletonConnections or R6SkeletonConnections
             local lineIndex = 1
             
             for _, connection in pairs(connections) do
-                local part1 = player.Character:FindFirstChild(connection[1])
-                local part2 = player.Character:FindFirstChild(connection[2])
+                local part1 = character:FindFirstChild(connection[1])
+                local part2 = character:FindFirstChild(connection[2])
                 
                 if part1 and part2 and espData.Skeleton[lineIndex] then
                     local pos1, vis1 = Camera:WorldToViewportPoint(part1.Position)
@@ -751,7 +747,8 @@ local function UpdateESP()
                     if vis1 or vis2 then
                         espData.Skeleton[lineIndex].From = Vector2.new(pos1.X, pos1.Y)
                         espData.Skeleton[lineIndex].To = Vector2.new(pos2.X, pos2.Y)
-                        espData.Skeleton[lineIndex].Color = ESPSettings.Rainbow and rainbowColor or Color3.fromRGB(255, 255, 255)
+                        espData.Skeleton[lineIndex].Color = rainbowColor or Color3.fromRGB(255, 255, 255)
+                        espData.Skeleton[lineIndex].Thickness = ESPSettings.SkeletonThickness * thickness
                         espData.Skeleton[lineIndex].Visible = true
                     else
                         espData.Skeleton[lineIndex].Visible = false
@@ -1228,6 +1225,20 @@ RainbowSpeedSlider:OnChanged(function(value)
     ESPSettings.RainbowSpeed = value
 end)
 
+local ThicknessSlider = ESPGroupBox:AddSlider("ESPThickness", {
+    Text = "ESP Thickness",
+    Default = 1,
+    Min = 0.5,
+    Max = 2,
+    Rounding = 1,
+    Suffix = "x",
+    Tooltip = "0.5 = Tipis | 1 = Normal | 1.5-2 = Tebal"
+})
+
+ThicknessSlider:OnChanged(function(value)
+    ESPSettings.GlobalThickness = value
+end)
+
 local AimbotGroupBox = Tabs.Main:AddRightGroupbox("Aimbot System")
 
 AimbotGroupBox:AddLabel("Combat Automation"):AddColorPicker("AimbotColor", {
@@ -1394,6 +1405,73 @@ local ProximityDistanceSlider = ProximityGroupBox:AddSlider("ProximityDistance",
 
 ProximityDistanceSlider:OnChanged(function(value)
     ProximityData.CheckDistance = value
+end)
+
+local DraggableLabel = Library:AddDraggableLabel("mspaint premium")
+DraggableLabel:SetVisible(true)
+
+local FrameTimer = tick()
+local FrameCounter = 0
+local FPS = 60
+
+local WatermarkConnection = game:GetService('RunService').RenderStepped:Connect(function()
+    FrameCounter = FrameCounter + 1
+    
+    if (tick() - FrameTimer) >= 1 then
+        FPS = FrameCounter
+        FrameTimer = tick()
+        FrameCounter = 0
+    end
+    
+    local fpsEmoji = "🟢"
+    if FPS < 30 then
+        fpsEmoji = "🔴"
+    elseif FPS < 50 then
+        fpsEmoji = "🟡"
+    end
+    
+    local ping = math.floor(game:GetService('Stats').Network.ServerStatsItem['Data Ping']:GetValue())
+    local pingEmoji = "🟢"
+    if ping > 200 then
+        pingEmoji = "🔴"
+    elseif ping > 100 then
+        pingEmoji = "🟡"
+    end
+    
+    local proximityEmoji = "🟢"
+    local proximityText = "Safe"
+    local playerCount = 0
+    
+    if ProximityData.Enabled and ProximityData.PlayersNearby and #ProximityData.PlayersNearby > 0 then
+        playerCount = #ProximityData.PlayersNearby
+        local closestDistance = math.huge
+        
+        for _, data in pairs(ProximityData.PlayersNearby) do
+            if data.Distance < closestDistance then
+                closestDistance = data.Distance
+            end
+        end
+        
+        local distancePercent = closestDistance / ProximityData.CheckDistance
+        
+        if distancePercent <= 0.33 then
+            proximityEmoji = "🔴"
+            proximityText = "DANGER"
+        elseif distancePercent <= 0.66 then
+            proximityEmoji = "🟡"
+            proximityText = "WARN"
+        else
+            proximityEmoji = "🟢"
+            proximityText = "SAFE"
+        end
+    end
+    
+    DraggableLabel:SetText(string.format(
+        'mspaint | %s %d fps | %s %d ms | %s %s (%d)',
+        fpsEmoji, FPS,
+        pingEmoji, ping,
+        proximityEmoji, proximityText, playerCount
+    ))
 end)
 
 local MovementGroupBox = Tabs.Main:AddRightGroupbox("Movement System")
