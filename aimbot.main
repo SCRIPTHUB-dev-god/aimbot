@@ -15,9 +15,8 @@ Library.AccentColor = Color3.fromRGB(138, 43, 226)
 Library.AccentColorDark = Color3.fromRGB(98, 15, 186)
 
 local Window = Library:CreateWindow({
-    Title = "mspaint premium",
+    Title = "aimbot pro",
     Footer = "version: 5.3",
-    Icon = 95816097006870,
     NotifySide = "Right",
     ShowCustomCursor = true,
     MinSidebarWidth = 200,
@@ -25,7 +24,7 @@ local Window = Library:CreateWindow({
 })
 
 local Tabs = {
-    Main = Window:AddTab("game hub", "laptop"),
+    Main = Window:AddTab("main", "user"),
 }
 
 local Players = game:GetService("Players")
@@ -1467,7 +1466,7 @@ local WatermarkConnection = game:GetService('RunService').RenderStepped:Connect(
     end
     
     DraggableLabel:SetText(string.format(
-        'mspaint | %s %d fps | %s %d ms | %s %s (%d)',
+        'aimbot | %s %d fps | %s %d ms | %s %s (%d)',
         fpsEmoji, FPS,
         pingEmoji, ping,
         proximityEmoji, proximityText, playerCount
