@@ -1,5 +1,5 @@
--- v5.3 | Optimized ESP, Draggable Watermark, Performance Improvements
--- ESP Thickness Control, FPS/Ping/Proximity Watermark with Emoji, Reduced Loops
+-- v5.4 | Dual Watermark System, Optimized ESP, Complete Aimbot
+-- Watermark 1: FPS/Ping/Proximity | Watermark 2: Aimbot Lock Info
 
 local repo = "https://raw.githubusercontent.com/deividcomsono/Obsidian/main/"
 local Library = loadstring(game:HttpGet(repo .. "Library.lua"))()
@@ -16,15 +16,31 @@ Library.AccentColorDark = Color3.fromRGB(98, 15, 186)
 
 local Window = Library:CreateWindow({
     Title = "aimbot pro",
-    Footer = "version: 5.3",
+    Footer = "version: 5.4",
     NotifySide = "Right",
     ShowCustomCursor = true,
     MinSidebarWidth = 200,
     SidebarCompactWidth = 56,
 })
 
+local Tab = Window:AddTab("support", "info")
+
+local infoGroupBox = Tab:AddLeftGroupbox("info", "info")
+
+local Label = infoGroupBox:AddLabel("support my discord")
+
+infoGroupBox:AddButton("Copy Discord", function()
+    local link = "https://discord.gg/mjhqEMRr"
+    
+    if setclipboard then
+        setclipboard(link)
+    elseif toclipboard then
+        toclipboard(link)
+    end
+end)
+
 local Tabs = {
-    Main = Window:AddTab("main", "user"),
+    Main = Window:AddTab("main", "laptop"),
 }
 
 local Players = game:GetService("Players")
@@ -70,15 +86,9 @@ local ESPSettings = {
 }
 
 local ProximityData = {
-    Enabled = false,
+    Enabled = true,
     CheckDistance = 50,
-    GUI = nil,
-    PlayersNearby = {},
-    CountLabel = nil,
-    DistanceLabel = nil,
-    UIStroke = nil,
-    UIGradient = nil,
-    TitleLabel = nil
+    PlayersNearby = {}
 }
 
 local MovementData = {
@@ -141,160 +151,16 @@ local function GetRainbowColor()
     return HSVToRGB(RainbowHue, 1, 1)
 end
 
-local function CreateProximityGUI()
-    local ScreenGui = Instance.new("ScreenGui")
-    ScreenGui.Name = "ProximityChecker"
-    ScreenGui.ResetOnSpawn = false
-    ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-    
-    local MainFrame = Instance.new("Frame")
-    MainFrame.Name = "MainFrame"
-    MainFrame.Size = UDim2.new(0, 200, 0, 80)
-    MainFrame.Position = UDim2.new(0.85, 0, 0.05, 0)
-    MainFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 20)
-    MainFrame.BorderSizePixel = 0
-    MainFrame.Parent = ScreenGui
-    
-    local UICorner = Instance.new("UICorner")
-    UICorner.CornerRadius = UDim.new(0, 10)
-    UICorner.Parent = MainFrame
-    
-    local UIStroke = Instance.new("UIStroke")
-    UIStroke.Color = Color3.fromRGB(0, 255, 0)
-    UIStroke.Thickness = 2
-    UIStroke.Parent = MainFrame
-    
-    local UIGradient = Instance.new("UIGradient")
-    UIGradient.Color = ColorSequence.new({
-        ColorSequenceKeypoint.new(0, Color3.fromRGB(0, 255, 0)),
-        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(0, 200, 0)),
-        ColorSequenceKeypoint.new(1, Color3.fromRGB(0, 255, 0))
-    })
-    UIGradient.Rotation = 45
-    UIGradient.Parent = UIStroke
-    
-    local TitleLabel = Instance.new("TextLabel")
-    TitleLabel.Name = "Title"
-    TitleLabel.Size = UDim2.new(1, -10, 0, 20)
-    TitleLabel.Position = UDim2.new(0, 5, 0, 5)
-    TitleLabel.BackgroundTransparency = 1
-    TitleLabel.Text = "PROXIMITY"
-    TitleLabel.TextColor3 = Color3.fromRGB(0, 255, 0)
-    TitleLabel.Font = Enum.Font.GothamBold
-    TitleLabel.TextSize = 12
-    TitleLabel.TextXAlignment = Enum.TextXAlignment.Center
-    TitleLabel.Parent = MainFrame
-    
-    local CountLabel = Instance.new("TextLabel")
-    CountLabel.Name = "CountLabel"
-    CountLabel.Size = UDim2.new(1, -10, 0, 18)
-    CountLabel.Position = UDim2.new(0, 5, 0, 28)
-    CountLabel.BackgroundTransparency = 1
-    CountLabel.Text = "Players: 0"
-    CountLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-    CountLabel.Font = Enum.Font.GothamBold
-    CountLabel.TextSize = 14
-    CountLabel.TextXAlignment = Enum.TextXAlignment.Center
-    CountLabel.Parent = MainFrame
-    
-    local DistanceLabel = Instance.new("TextLabel")
-    DistanceLabel.Name = "DistanceLabel"
-    DistanceLabel.Size = UDim2.new(1, -10, 0, 15)
-    DistanceLabel.Position = UDim2.new(0, 5, 0, 48)
-    DistanceLabel.BackgroundTransparency = 1
-    DistanceLabel.Text = "Range: 50 studs"
-    DistanceLabel.TextColor3 = Color3.fromRGB(180, 180, 180)
-    DistanceLabel.Font = Enum.Font.Gotham
-    DistanceLabel.TextSize = 11
-    DistanceLabel.TextXAlignment = Enum.TextXAlignment.Center
-    DistanceLabel.Parent = MainFrame
-    
-    local CloseButton = Instance.new("TextButton")
-    CloseButton.Name = "CloseButton"
-    CloseButton.Size = UDim2.new(0, 15, 0, 15)
-    CloseButton.Position = UDim2.new(1, -18, 0, 3)
-    CloseButton.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
-    CloseButton.Text = "X"
-    CloseButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-    CloseButton.Font = Enum.Font.GothamBold
-    CloseButton.TextSize = 10
-    CloseButton.BorderSizePixel = 0
-    CloseButton.Parent = MainFrame
-    
-    local CloseCorner = Instance.new("UICorner")
-    CloseCorner.CornerRadius = UDim.new(0, 4)
-    CloseCorner.Parent = CloseButton
-    
-    CloseButton.MouseButton1Click:Connect(function()
-        ScreenGui.Enabled = false
-    end)
-    
-    local dragToggle = nil
-    local dragStart = nil
-    local startPos = nil
-    
-    local function updateInput(input)
-        local delta = input.Position - dragStart
-        MainFrame.Position = UDim2.new(
-            startPos.X.Scale,
-            startPos.X.Offset + delta.X,
-            startPos.Y.Scale,
-            startPos.Y.Offset + delta.Y
-        )
-    end
-    
-    MainFrame.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-            dragToggle = true
-            dragStart = input.Position
-            startPos = MainFrame.Position
-            
-            input.Changed:Connect(function()
-                if input.UserInputState == Enum.UserInputState.End then
-                    dragToggle = false
-                end
-            end)
-        end
-    end)
-    
-    UserInputService.InputChanged:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
-            if dragToggle then
-                updateInput(input)
-            end
-        end
-    end)
-    
-    ScreenGui.Parent = game:GetService("CoreGui")
-    ScreenGui.Enabled = false
-    
-    return ScreenGui, CountLabel, DistanceLabel, UIStroke, UIGradient, TitleLabel
-end
-
-ProximityData.GUI, ProximityData.CountLabel, ProximityData.DistanceLabel, ProximityData.UIStroke, ProximityData.UIGradient, ProximityData.TitleLabel = CreateProximityGUI()
-
 local function UpdateProximityData()
-    if not ProximityData.Enabled or not ProximityData.GUI.Enabled then return end
+    if not ProximityData.Enabled then return end
     
     ProximityData.PlayersNearby = {}
     
     if not LocalPlayer.Character or not LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
-        ProximityData.CountLabel.Text = "Players: 0"
-        ProximityData.DistanceLabel.Text = string.format("Range: %d studs", ProximityData.CheckDistance)
-        
-        local safeColor = Color3.fromRGB(0, 255, 0)
-        ProximityData.UIStroke.Color = safeColor
-        ProximityData.UIGradient.Color = ColorSequence.new({
-            ColorSequenceKeypoint.new(0, safeColor),
-            ColorSequenceKeypoint.new(0.5, Color3.fromRGB(0, 200, 0)),
-            ColorSequenceKeypoint.new(1, safeColor)
-        })
-        ProximityData.TitleLabel.TextColor3 = safeColor
         return
     end
     
     local myPos = LocalPlayer.Character.HumanoidRootPart.Position
-    local closestDistance = math.huge
     
     for _, player in pairs(Players:GetPlayers()) do
         if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
@@ -307,49 +173,10 @@ local function UpdateProximityData()
                         Player = player,
                         Distance = distance
                     })
-                    
-                    if distance < closestDistance then
-                        closestDistance = distance
-                    end
                 end
             end
         end
     end
-    
-    local playerCount = #ProximityData.PlayersNearby
-    ProximityData.CountLabel.Text = string.format("Players: %d", playerCount)
-    
-    local proximityColor
-    local proximityColorDark
-    
-    if playerCount > 0 then
-        ProximityData.DistanceLabel.Text = string.format("Closest: %.1f studs", closestDistance)
-        
-        local distancePercent = closestDistance / ProximityData.CheckDistance
-        
-        if distancePercent <= 0.33 then
-            proximityColor = Color3.fromRGB(255, 0, 0)
-            proximityColorDark = Color3.fromRGB(200, 0, 0)
-        elseif distancePercent <= 0.66 then
-            proximityColor = Color3.fromRGB(255, 255, 0)
-            proximityColorDark = Color3.fromRGB(200, 200, 0)
-        else
-            proximityColor = Color3.fromRGB(0, 255, 0)
-            proximityColorDark = Color3.fromRGB(0, 200, 0)
-        end
-    else
-        ProximityData.DistanceLabel.Text = string.format("Range: %d studs", ProximityData.CheckDistance)
-        proximityColor = Color3.fromRGB(0, 255, 0)
-        proximityColorDark = Color3.fromRGB(0, 200, 0)
-    end
-    
-    ProximityData.UIStroke.Color = proximityColor
-    ProximityData.UIGradient.Color = ColorSequence.new({
-        ColorSequenceKeypoint.new(0, proximityColor),
-        ColorSequenceKeypoint.new(0.5, proximityColorDark),
-        ColorSequenceKeypoint.new(1, proximityColor)
-    })
-    ProximityData.TitleLabel.TextColor3 = proximityColor
 end
 
 local function CreateESPForPlayer(player)
@@ -1371,43 +1198,32 @@ RunService.Heartbeat:Connect(function()
     MethodLabel:SetText(string.format("Method: %s", AimbotData.TargetMethod))
 end)
 
-local ProximityGroupBox = Tabs.Main:AddLeftGroupbox("Proximity Checker")
+local ProximityGroupBox = Tabs.Main:AddLeftGroupbox("Utility Settings")
 
-ProximityGroupBox:AddLabel("Player Detection"):AddColorPicker("ProximityColor", {
+ProximityGroupBox:AddLabel("Proximity Detection"):AddColorPicker("ProximityColor", {
     Default = Color3.fromRGB(138, 43, 226),
     Title = "Proximity Color"
 })
 
-local ProximityToggle = ProximityGroupBox:AddToggle("EnableProximity", {
-    Text = "Enable Proximity GUI",
-    Default = false
-})
-
-ProximityToggle:OnChanged(function(state)
-    ProximityData.Enabled = state
-    ProximityData.GUI.Enabled = state
-    if state then
-        UpdateProximityData()
-    end
-end)
-
-ProximityGroupBox:AddDivider()
-
 local ProximityDistanceSlider = ProximityGroupBox:AddSlider("ProximityDistance", {
-    Text = "Check Distance",
+    Text = "Detection Range",
     Default = 50,
     Min = 10,
     Max = 200,
     Rounding = 0,
-    Suffix = " studs"
+    Suffix = " studs",
+    Tooltip = "Jarak deteksi player untuk watermark utility"
 })
 
 ProximityDistanceSlider:OnChanged(function(value)
     ProximityData.CheckDistance = value
 end)
 
-local DraggableLabel = Library:AddDraggableLabel("mspaint premium")
+local DraggableLabel = Library:AddDraggableLabel("mspaint")
 DraggableLabel:SetVisible(true)
+
+local AimbotLabel = Library:AddDraggableLabel("aimbot info")
+AimbotLabel:SetVisible(true)
 
 local FrameTimer = tick()
 local FrameCounter = 0
@@ -1466,11 +1282,48 @@ local WatermarkConnection = game:GetService('RunService').RenderStepped:Connect(
     end
     
     DraggableLabel:SetText(string.format(
-        'aimbot | %s %d fps | %s %d ms | %s %s (%d)',
+        'mspaint | %s %d fps | %s %d ms | %s %s (%d)',
         fpsEmoji, FPS,
         pingEmoji, ping,
         proximityEmoji, proximityText, playerCount
     ))
+    
+    if AimbotData.LockedTarget and AimbotData.LockedTarget.Character then
+        local distance = 0
+        if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") and AimbotData.LockedTarget.Character:FindFirstChild("HumanoidRootPart") then
+            distance = (LocalPlayer.Character.HumanoidRootPart.Position - AimbotData.LockedTarget.Character.HumanoidRootPart.Position).Magnitude
+        end
+        
+        local targetEmoji = "🎯"
+        local lockEmoji = "🔒"
+        local partEmoji = "📍"
+        
+        local targetName = AimbotData.LockedTarget.Name
+        local targetPart = AimbotData.LastValidPart or "Auto"
+        local targetMethod = AimbotData.TargetMethod
+        
+        if distance < 50 then
+            targetEmoji = "🔴"
+        elseif distance < 100 then
+            targetEmoji = "🟡"
+        else
+            targetEmoji = "🟢"
+        end
+        
+        AimbotLabel:SetText(string.format(
+            '%s LOCKED: %s | %s %.0f studs | %s %s | Method: %s',
+            lockEmoji, targetName,
+            targetEmoji, distance,
+            partEmoji, targetPart,
+            targetMethod
+        ))
+    else
+        if AimbotData.Enabled then
+            AimbotLabel:SetText('🎯 Aimbot: Searching for target...')
+        else
+            AimbotLabel:SetText('❌ Aimbot: Disabled')
+        end
+    end
 end)
 
 local MovementGroupBox = Tabs.Main:AddRightGroupbox("Movement System")
